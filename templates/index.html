@@ -14,6 +14,15 @@
     --bs-primary: rgba(0,43,83,1);
     --bs-primary-rgb: 0,43,83;
   }
+body {
+  font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS", sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Minion Pro", "Georgia", serif;
+}
+
+
     .hero {
       position: relative;
       background-color: rgba(0,43,83,1);
@@ -27,6 +36,8 @@
       flex-direction: column;
       padding: 0 20px;
     }
+
+
     .hero img.logo {
       max-height: 160px;
       margin-bottom: 20px;
@@ -163,7 +174,7 @@
 <body class="bg-light">
   {% include 'nav.html' %}
 
-  <section class="hero text-white">
+  <section class="hero text-white"  id="vanta-hero">
     <div class="container">
       <img src="{{ url_for('static', filename='dolphin_logo.webp') }}" alt="Logo" class="logo">
       <h1 class="mb-3">Lost & Found</h1>
@@ -359,6 +370,25 @@
     </script>
   {% endif %}
 {% endwith %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.waves.min.js"></script>
+
+<script>
+  VANTA.WAVES({
+    el: "#vanta-hero",
+    mouseControls: true,
+    touchControls: true,
+    minHeight: 200.00,
+    minWidth: 200.00,
+    scale: 1.0,
+    scaleMobile: 1.0,
+    color: 0x002b53,
+    shininess: 30.0,
+    waveHeight: 20.0,
+    waveSpeed: 0.6,
+    zoom: 0.85
+  })
+</script>
 
 </body>
 </html>
