@@ -3,151 +3,183 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>{{ username }}'s Profile</title>
+  <title>{{ username | capitalize }}'s Profile</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="icon" href="{{ url_for('static', filename='favicon.png') }}">
   <style>
+    :root {
+      --brand-color: rgba(0,43,83,1);
+      --brand-hover: #001d3d;
+      --found-color: #38b6ff;
+      --returned-color: #4caf50;
+    }
+  .text-primary {
+    color: rgba(0,43,83,1) !important;
+  }
+    body {
+      background: #f7f9fc;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .section-title {
+      border-left: 4px solid var(--brand-color);
+      padding-left: 12px;
+      margin-bottom: 1rem;
+      font-weight: 600;
+      color: var(--brand-color);
+    }
+
+    .card {
+      border: none;
+      border-radius: 0.75rem;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+      transition: transform 0.2s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+    }
+
     .card-img-top {
       height: 180px;
       object-fit: cover;
     }
+
+    .badge-status {
+      font-size: 0.75rem;
+      padding: 0.4em 0.7em;
+      border-radius: 0.5rem;
+    }
+
+    .badge-returned {
+      background-color: var(--returned-color);
+      color: white;
+    }
+
+    .badge-pending {
+      background-color: #ffc107;
+      color: #000;
+    }
+
+    .btn-mark {
+      border-color: var(--brand-color);
+      color: var(--brand-color);
+    }
+
+    .btn-mark:hover {
+      background-color: var(--brand-color);
+      color: white;
+    }
+
+    .btn-back {
+      background-color: #e0e0e0;
+      border: none;
+      font-weight: 500;
+    }
+
+    .btn-back:hover {
+      background-color: #d0d0d0;
+    }
   </style>
 </head>
-<body class="bg-light">
+<body>
   {% include 'nav.html' %}
 
-  <div class="container py-5">
-    <div class="mb-5 text-center">
-      <h2 class="fw-bold">{{ username | capitalize }}'s Profile</h2>
-      <p class="lead">Points: <span class="fw-semibold text-primary">{{ points }}</span></p>
+  <div class="container py-4">
+    <div class="text-center mb-5">
+      <h2 class="fw-bold mt-4">{{ username | capitalize }}'s Profile</h2>
+      <p class="text-muted mb-0">Points: <span class="fw-bold" style="color: var(--brand-color)">{{ points }}</span></p>
     </div>
 
-    <!-- Lost Items -->
-    <h4 class="mb-3 text-danger">📢 Your Lost Items</h4>
+    <!-- Lost Items Section -->
+    <h5 class="section-title">Your Lost Items</h5>
     <div class="row mb-5">
       {% if lost_items %}
         {% for item in lost_items %}
         <div class="col-md-4 mb-4">
-          <div class="card shadow-sm">
+          <div class="card">
             <img src="{{ url_for('static', filename='uploads/' + (item.image if item.image else 'placeholder.jpg')) }}"
                  class="card-img-top"
-                 alt="Item Image"
-                 onerror="this.onerror=null;this.src='https://via.placeholder.com/400x250?text=No+Image';">
-<div class="card-body">
-  <h5 class="card-title">{{ item.title }}</h5>
-  <p class="card-text">{{ item.description }}</p>
-
-  <div class="d-flex justify-content-between align-items-center">
-    <span class="badge bg-{{ 'success' if item.returned else 'warning text-dark' }}">
-      {{ 'Returned' if item.returned else 'Pending' }}
-    </span>
-
-    {% if not item.returned %}
-      <form method="POST" action="{{ url_for('mark_returned_from_profile') }}">
-        <input type="hidden" name="title" value="{{ item.title }}">
-          <button class="btn btn-outline-success btn-sm mark-returned-btn" data-title="{{ item.title }}">Mark as Found</button>
-      </form>
-    {% endif %}
-  </div>
-</div>
-
-          </div>
-        </div>
-        {% endfor %}
-      {% else %}
-        <p class="text-muted">You haven't reported any lost items yet.</p>
-      {% endif %}
-    </div>
-
-    <!-- Found Items -->
-    <h4 class="mb-3 text-success">🟢 Your Found Items</h4>
-    <div class="row mb-5">
-      {% if found_items %}
-        {% for item in found_items %}
-        <div class="col-md-4 mb-4">
-          <div class="card shadow-sm border-success">
-            <img src="{{ url_for('static', filename='uploads/' + (item.image if item.image else 'placeholder.jpg')) }}"
-                 class="card-img-top"
-                 alt="Item Image"
-                 onerror="this.onerror=null;this.src='https://via.placeholder.com/400x250?text=No+Image';">
-          <div class="card-body">
-            <h5 class="card-title">{{ item.title }}</h5>
-            <p class="card-text">{{ item.description }}</p>
-
-            <div class="d-flex justify-content-between align-items-center">
-              <span class="badge bg-{{ 'success' if item.returned else 'warning text-dark' }}">
-                {{ 'Returned' if item.returned else 'Pending' }}
-              </span>
-
-              {% if not item.returned %}
+                 onerror="this.onerror=null;this.src='https://via.placeholder.com/400x250?text=No+Image';"
+                 alt="Item Image">
+            <div class="card-body">
+              <h5 class="card-title">{{ item.title }}</h5>
+              <p class="card-text text-muted">{{ item.description }}</p>
+              <div class="d-flex justify-content-between align-items-center">
+                <span class="badge-status {% if item.returned %}badge-returned{% else %}badge-pending{% endif %}">
+                  {{ 'Returned' if item.returned else 'Pending' }}
+                </span>
+                {% if not item.returned %}
                 <form method="POST" action="{{ url_for('mark_returned_from_profile') }}">
                   <input type="hidden" name="title" value="{{ item.title }}">
-                  <button class="btn btn-outline-success btn-sm mark-returned-btn" data-title="{{ item.title }}">Mark as Found</button>
+                  <button type="submit" class="btn btn-sm btn-mark">Mark as Found</button>
                 </form>
-              {% endif %}
+                {% endif %}
+              </div>
             </div>
-          </div>
-
           </div>
         </div>
         {% endfor %}
       {% else %}
-        <p class="text-muted">You haven't reported any found items yet.</p>
+        <p class="text-muted">No lost items reported yet.</p>
       {% endif %}
     </div>
 
-    <!-- Returned Items -->
-<h4 class="mb-3 text-primary">✅ Your Returned Items</h4>
-<div class="row">
-  {% if returned_items %}
-    {% for item in returned_items %}
-    <div class="col-md-4 mb-4">
-      <div class="card shadow-sm border-primary">
-        <img src="{{ url_for('static', filename='uploads/' + (item.image if item.image else 'placeholder.jpg')) }}"
-             class="card-img-top"
-             alt="Item Image"
-             onerror="this.onerror=null;this.src='https://via.placeholder.com/400x250?text=No+Image';">
-        <div class="card-body">
-          <h5 class="card-title">{{ item.title }}</h5>
-          <p class="card-text">{{ item.description }}</p>
-          <span class="badge bg-primary">Returned</span>
+    <!-- Returned Items Section -->
+    <h5 class="section-title">Your Returned Items</h5>
+    <div class="row">
+      {% if returned_items %}
+        {% for item in returned_items %}
+        <div class="col-md-4 mb-4">
+          <div class="card border border-light">
+            <img src="{{ url_for('static', filename='uploads/' + (item.image if item.image else 'placeholder.jpg')) }}"
+                 class="card-img-top"
+                 onerror="this.onerror=null;this.src='https://via.placeholder.com/400x250?text=No+Image';"
+                 alt="Item Image">
+            <div class="card-body">
+              <h5 class="card-title">{{ item.title }}</h5>
+              <p class="card-text text-muted">{{ item.description }}</p>
+              <span class="badge-status badge-returned">Returned</span>
+            </div>
+          </div>
         </div>
-      </div>
+        {% endfor %}
+      {% else %}
+        <p class="text-muted">No returned items yet.</p>
+      {% endif %}
     </div>
-    {% endfor %}
-  {% else %}
-    <p class="text-muted">No items you've reported have been returned yet.</p>
-  {% endif %}
-</div>
+
+
+    <h5 class="section-title mt-5">Messages You Received</h5>
+    <div class="row">
+      {% if received_messages %}
+        {% for msg in received_messages %}
+        <div class="col-md-6 mb-4">
+          <div class="card shadow-sm border-0">
+            <div class="card-body">
+              <h6 class="fw-bold mb-2 text-primary">Someone may have found: "{{ msg.item }}"</h6>
+              <p class="mb-1"><strong>Name:</strong> {{ msg.finder_name }}</p>
+              <p class="mb-1"><strong>Grade:</strong> {{ msg.finder_grade }}</p>
+              <p class="mb-1"><strong>Contact:</strong> {{ msg.finder_contact }}</p>
+              <p class="mb-2"><strong>Message:</strong><br>{{ msg.message }}</p>
+              <span class="badge {{ 'bg-success' if msg.seen else 'bg-secondary' }}">
+                {{ 'Seen' if msg.seen else 'New' }}
+              </span>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <p class="text-muted">No one has contacted you about your items yet.</p>
+      {% endif %}
+    </div>
 
 
     <div class="text-center mt-5">
-      <a href="{{ url_for('home') }}" class="btn btn-secondary">Back to Home</a>
+      <a href="{{ url_for('home') }}" class="btn btn-back px-4 py-2">Back to Home</a>
     </div>
-
   </div>
-<script>
-  document.querySelectorAll('.mark-returned-btn').forEach(button => {
-    button.addEventListener('click', async function () {
-      const title = this.getAttribute('data-title');
-      const card = this.closest('.col-md-4');
-
-      const res = await fetch('/api/mark_returned', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ title })
-      });
-
-      const result = await res.json();
-      if (result.success) {
-        card.remove();  // Immediately remove the item from the DOM
-      } else {
-        alert(result.error || 'Failed to mark as returned');
-      }
-    });
-  });
-</script>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

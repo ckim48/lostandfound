@@ -1,21 +1,31 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.utils import secure_filename
 import os
 import firebase_admin
 from firebase_admin import credentials, db
 from flask import jsonify
+from flask_mail import Mail, Message
+
 
 
 
 
 cred = credentials.Certificate('lostandfound.json')
 firebase_admin.initialize_app(cred, {
-    'databaseURL': 'https://lostandfound-88035-default-rtdb.firebaseio.com/'  # Replace with your Firebase DB URL
+    'databaseURL': 'https://lostandfound-88035-default-rtdb.firebaseio.com/'
 })
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = 'madckkim@gmail.com'
+app.config['MAIL_PASSWORD'] = 'Dpdltm1212!'
+app.config['MAIL_DEFAULT_SENDER'] = 'your_gmail@gmail.com'
+
+mail = Mail(app)
 
 # Dummy users and items (sample data)
 users = {
@@ -90,6 +100,72 @@ def api_mark_returned():
                 return jsonify({'success': True})
 
     return jsonify({'error': 'Item not found or already returned'}), 404
+@app.route('/contact_owner', methods=['POST'])
+def contact_owner():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+
+    from_user = session['username']
+    to_user = request.form.get('owner')
+    item_title = request.form.get('item_title')
+
+    finder_name = request.form.get('finder_name')
+    finder_grade = request.form.get('finder_grade')
+    finder_contact = request.form.get('finder_contact')
+    finder_message = request.form.get('finder_message')
+
+    user_ref = db.reference(f'users/{to_user}')
+    recipient = user_ref.get()
+
+    if not recipient:
+        return "❌ Could not find the user.", 404
+
+    recipient_email = recipient.get('email', 'no@email.com')
+
+    # Email sending (requires Flask-Mail config)
+    subject = f"[Lost & Found] {finder_name} may have found your item!"
+    body = f"""
+Hi {to_user},
+
+Someone may have found your item titled: "{item_title}".
+
+Message:
+---------
+{finder_message}
+
+Finder Info:
+- Name: {finder_name}
+- Grade: {finder_grade}
+- Contact: {finder_contact}
+
+Please follow up if this seems like your lost item.
+
+- Lost & Found System
+    """
+
+    try:
+        msg = Message(subject, recipients=[recipient_email])
+        msg.body = body
+        mail.send(msg)
+    except Exception as e:
+        print(f"❌ Email failed: {e}")
+
+    # Save to Firebase
+    db.reference('messages').push({
+        'from': from_user,
+        'to': to_user,
+        'item': item_title,
+        'finder_name': finder_name,
+        'finder_grade': finder_grade,
+        'finder_contact': finder_contact,
+        'message': finder_message,
+        'seen': False
+    })
+
+    flash('Your message was successfully sent to the item owner! 🎉')
+    return redirect(url_for('home'))
+
+
 def insert_mock_items():
     mock_items = [
         {
@@ -275,20 +351,23 @@ def profile():
     username = session['username']
     user = db.reference(f'users/{username}').get()
     all_items = db.reference('items').get()
+    all_msgs = db.reference('messages').get()
 
     user_items = [item for item in all_items.values() if item['owner'] == username] if all_items else []
+    received_messages = [msg for msg in all_msgs.values() if msg.get('to') == username] if all_msgs else []
 
-    # Filter properly
     lost_items = [item for item in user_items if item['status'] == 'lost' and not item['returned']]
     found_items = [item for item in user_items if item['status'] == 'found' and not item['returned']]
-    returned_items = [item for item in user_items if item['returned'] == True]
+    returned_items = [item for item in user_items if item['returned']]
 
     return render_template('profile.html',
                            username=username,
                            points=user.get('points', 0),
                            lost_items=lost_items,
                            found_items=found_items,
-                           returned_items=returned_items)
+                           returned_items=returned_items,
+                           received_messages=received_messages)
+
 
 
 
@@ -313,6 +392,7 @@ def mark_returned_from_profile():
                 break
 
     return redirect(url_for('profile'))
+
 
 if __name__ == '__main__':
     os.makedirs('static/uploads', exist_ok=True)
