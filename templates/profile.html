@@ -6,12 +6,20 @@
   <title>{{ username | capitalize }}'s Profile</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="icon" href="{{ url_for('static', filename='favicon.png') }}">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
   <style>
     :root {
+         --bs-primary: rgba(0,43,83,1);
+    --bs-primary-rgb: 0,43,83;
+              --brand-color: rgba(0,43,83,1);
+      --brand-hover: #001d3d;
+      --found-color: rgba(172,212,241,1);
+      --returned-color: rgba(165,179,171,1);
       --brand-color: rgba(0,43,83,1);
       --brand-hover: #001d3d;
-      --found-color: #38b6ff;
-      --returned-color: #4caf50;
+      --found-color: rgba(172,212,241,1);
+      --returned-color: rgba(165,179,171,1);
     }
   .text-primary {
     color: rgba(0,43,83,1) !important;
@@ -20,9 +28,29 @@
       background: #f7f9fc;
       font-family: 'Segoe UI', sans-serif;
     }
+
 body {
+  position: relative;
+  background-color: #f7f9fc;
   font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS", sans-serif;
 }
+
+body::before {
+  content: "";
+  position: absolute;
+  top: 15%;
+  left: 50%;
+  width: 850px;
+  height: 850px;
+  background: url('{{ url_for("static", filename="logo.png") }}') no-repeat center center;
+  background-size: contain;
+  opacity: 0.025;
+  transform: translateX(-50%);
+  z-index: 1;
+  pointer-events: none;
+}
+
+
 
 h1, h2, h3, h4, h5, h6 {
   font-family: "Minion Pro", "Georgia", serif;
@@ -40,6 +68,7 @@ h1, h2, h3, h4, h5, h6 {
       border-radius: 0.75rem;
       box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
       overflow: hidden;
+      z-index:2;
       transition: transform 0.2s ease;
     }
 
@@ -87,6 +116,72 @@ h1, h2, h3, h4, h5, h6 {
     .btn-back:hover {
       background-color: #d0d0d0;
     }
+    .card {
+  border-radius: 1rem;
+  transition: all 0.2s ease;
+}
+
+.card:hover {
+  transform: scale(1.01);
+}
+
+.badge-status {
+  font-size: 0.8rem;
+  padding: 0.4em 0.8em;
+  border-radius: 0.5rem;
+}
+
+.profile-card .bi-stars {
+  vertical-align: middle;
+}
+      .btn-primary {
+    background-color: rgba(0,43,83,1) !important;
+    border-color: rgba(0,43,83,1) !important;
+  }
+
+  .btn-primary:hover {
+    background-color: #001d3d !important;
+    border-color: #001d3d !important;
+  }
+    .bg-info{
+      background-color:rgba(172,212,241,1) !important;
+    }
+    .leaderboard-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  font-size: 1.25rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1055;
+}
+
+.bg-warning-subtle {
+  background-color: #fff9db !important;
+}
+.bg-secondary-subtle {
+  background-color: #eaeaea !important;
+}
+.bg-bronze-subtle {
+  background-color: #fbe4d5 !important;
+}
+
+.border-bronze {
+  border-color: #cd7f32 !important;
+}
+
+.leaderboard-entry {
+  transition: all 0.2s ease-in-out;
+}
+
+.leaderboard-entry:hover {
+  transform: scale(1.01);
+  background-color: rgba(0, 43, 83, 0.05);
+}
+
   </style>
 </head>
 <body>
@@ -94,9 +189,39 @@ h1, h2, h3, h4, h5, h6 {
 
   <div class="container py-4">
     <div class="text-center mb-5">
-      <h2 class="fw-bold mt-4">{{ username | capitalize }}'s Profile</h2>
-      <p class="text-muted mb-0">Points: <span class="fw-bold" style="color: var(--brand-color)">{{ points }}</span></p>
+<!--      <h2 class="fw-bold mt-4">{{ username | capitalize }}'s Profile</h2>-->
+<!--      <p class="text-muted mb-0">Points: <span class="fw-bold" style="color: var(&#45;&#45;brand-color)">{{ points }}</span></p>-->
     </div>
+<div class="row justify-content-center mb-5">
+  <div class="col-md-6">
+    <div class="card profile-card border-0 shadow-sm p-4">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <h3 class="fw-bold mb-2 text-dark">{{ username | capitalize }}</h3>
+            <p class="mb-2"><strong>Email:</strong> <span class="text-muted">{{ user.get('email') }}</span></p>
+            <div class="d-flex flex-wrap gap-2 mt-3">
+              {% if user.get('role') %}
+              <span class="badge bg-info text-dark px-3 py-2">{{ user.get('role', '').capitalize() }}</span>
+              {% endif %}
+              {% if user.get('grade') %}
+              <span class="badge bg-secondary px-3 py-2">{{ user.get('grade', '') }} Grade</span>
+              {% endif %}
+            </div>
+          </div>
+          <div class="text-end">
+            <span class="d-inline-flex align-items-center gap-2 bg-light px-3 py-2 rounded shadow-sm">
+              <i class="bi bi-stars text-warning fs-5"></i>
+              <span class="fw-bold text-primary">{{ points }} points</span>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 
     <!-- Lost Items Section -->
     <h5 class="section-title">Your Lost Items</h5>
@@ -187,6 +312,38 @@ h1, h2, h3, h4, h5, h6 {
     </div>
   </div>
 
+  <!-- Floating Leaderboard Button -->
+<button class="btn btn-primary shadow-lg rounded-circle leaderboard-btn" data-bs-toggle="modal" data-bs-target="#leaderboardModal" title="View Leaderboard">
+  <i class="bi bi-trophy-fill fs-4"></i>
+</button>
+<!-- Leaderboard Modal -->
+<!-- Leaderboard Modal -->
+<div class="modal fade" id="leaderboardModal" tabindex="-1" aria-labelledby="leaderboardModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content shadow">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="leaderboardModalLabel"><i class="bi bi-trophy-fill me-2"></i>Points Leaderboard</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body px-4 pt-3 pb-4">
+        {% for user, data in sorted_users %}
+          <div class="d-flex justify-content-between align-items-center px-3 py-2 mb-2 rounded shadow-sm leaderboard-entry
+                      border-start border-5
+                      {% if loop.index == 1 %}bg-warning-subtle border-warning fw-bold
+                      {% elif loop.index == 2 %}bg-secondary-subtle border-secondary fw-semibold
+                      {% elif loop.index == 3 %}bg-bronze-subtle border-bronze fw-medium
+                      {% else %}bg-white border-light-subtle{% endif %}">
+            <div class="d-flex align-items-center gap-3">
+              <span class="fs-5 fw-bold text-muted">#{{ loop.index }}</span>
+              <span class="fs-6">{{ user }}</span>
+            </div>
+            <span class="badge bg-primary rounded-pill px-3">{{ data.points }} pts</span>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

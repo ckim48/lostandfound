@@ -277,6 +277,7 @@ def report_lost():
         title = request.form['title']
         description = request.form['description']
         image = request.files.get('image')
+        sorted_users = sorted(users.items(), key=lambda x: x[1]['points'], reverse=True)
 
         # Handle image (optional)
         if image and image.filename != '':
@@ -298,7 +299,7 @@ def report_lost():
 
         return redirect(url_for('home'))
 
-    return render_template('report_lost.html')
+    return render_template('report_lost.html', sorted_users=sorted_users)
 @app.route('/report_found', methods=['POST'])
 def report_found():
     if 'username' not in session:
@@ -342,7 +343,6 @@ def explore_items():
     items = list(all_items.values()) if all_items else []
     return render_template('explore.html', items=items)
 
-
 @app.route('/profile')
 def profile():
     if 'username' not in session:
@@ -352,6 +352,7 @@ def profile():
     user = db.reference(f'users/{username}').get()
     all_items = db.reference('items').get()
     all_msgs = db.reference('messages').get()
+    sorted_users = sorted(users.items(), key=lambda x: x[1]['points'], reverse=True)
 
     user_items = [item for item in all_items.values() if item['owner'] == username] if all_items else []
     received_messages = [msg for msg in all_msgs.values() if msg.get('to') == username] if all_msgs else []
@@ -362,11 +363,13 @@ def profile():
 
     return render_template('profile.html',
                            username=username,
+                           user=user,  # ✅ Add this line
                            points=user.get('points', 0),
                            lost_items=lost_items,
                            found_items=found_items,
                            returned_items=returned_items,
-                           received_messages=received_messages)
+                           received_messages=received_messages,
+                           sorted_users=sorted_users)
 
 
 

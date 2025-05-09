@@ -13,6 +13,10 @@
       :root {
     --bs-primary: rgba(0,43,83,1);
     --bs-primary-rgb: 0,43,83;
+              --brand-color: rgba(0,43,83,1);
+      --brand-hover: #001d3d;
+      --found-color: rgba(172,212,241,1);
+      --returned-color: rgba(165,179,171,1);
   }
 body {
   font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS", sans-serif;
@@ -159,13 +163,49 @@ h1, h2, h3, h4, h5, h6 {
     border-color: #001d3d !important;
   }
     .bg-lost {
-  background-color: #ff6b6b !important;
+  background-color: rgba(217, 84, 30) !important;
   color: white !important;
 }
 
 .bg-returned {
-  background-color: #4ecdc4 !important;
+  background-color: rgba(172,212,241,1) !important;
   color: white !important;
+}
+    .leaderboard-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  font-size: 1.25rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1055;
+}
+
+/* Custom Backgrounds for Top 3 */
+.bg-warning-subtle {
+  background-color: #fff9db !important;
+}
+.bg-secondary-subtle {
+  background-color: #eaeaea !important;
+}
+.bg-bronze-subtle {
+  background-color: #fbe4d5 !important;
+}
+
+.border-bronze {
+  border-color: #cd7f32 !important;
+}
+
+.leaderboard-entry {
+  transition: all 0.2s ease-in-out;
+}
+
+.leaderboard-entry:hover {
+  transform: scale(1.01);
+  background-color: rgba(0, 43, 83, 0.05);
 }
 
   </style>
@@ -327,6 +367,42 @@ h1, h2, h3, h4, h5, h6 {
 
   </div>
 
+  <!-- Floating Leaderboard Button -->
+<button class="btn btn-primary shadow-lg rounded-circle leaderboard-btn" data-bs-toggle="modal" data-bs-target="#leaderboardModal" title="View Leaderboard">
+  <i class="bi bi-trophy-fill fs-4"></i>
+</button>
+<!-- Leaderboard Modal -->
+<!-- Leaderboard Modal -->
+<div class="modal fade" id="leaderboardModal" tabindex="-1" aria-labelledby="leaderboardModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content shadow">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="leaderboardModalLabel"><i class="bi bi-trophy-fill me-2"></i>Points Leaderboard</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body px-4 pt-3 pb-4">
+        {% for user, data in sorted_users %}
+          <div class="d-flex justify-content-between align-items-center px-3 py-2 mb-2 rounded shadow-sm leaderboard-entry
+                      border-start border-5
+                      {% if loop.index == 1 %}bg-warning-subtle border-warning fw-bold
+                      {% elif loop.index == 2 %}bg-secondary-subtle border-secondary fw-semibold
+                      {% elif loop.index == 3 %}bg-bronze-subtle border-bronze fw-medium
+                      {% else %}bg-white border-light-subtle{% endif %}">
+            <div class="d-flex align-items-center gap-3">
+              <span class="fs-5 fw-bold text-muted">#{{ loop.index }}</span>
+              <span class="fs-6">{{ user }}</span>
+            </div>
+            <span class="badge bg-primary rounded-pill px-3">{{ data.points }} pts</span>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://unpkg.com/isotope-layout@3/dist/isotope.pkgd.min.js"></script>
   <script>
@@ -389,6 +465,9 @@ h1, h2, h3, h4, h5, h6 {
     zoom: 0.85
   })
 </script>
+
+
+
 
 </body>
 </html>
