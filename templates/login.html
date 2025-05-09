@@ -74,8 +74,9 @@ h1, h2, h3, h4, h5, h6 {
 </head>
 <body>
   <div class="login-card">
+        <a href="{{url_for('home')}}">
       <img src="{{ url_for('static', filename='hero_log_no_bg.png') }}" alt="Logo" class="mb-3 d-block mx-auto" style="max-width: 230px;">
-
+    </a>
     <h2>Login</h2>
     <form method="POST">
       <div class="mb-3">
