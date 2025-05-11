@@ -277,9 +277,7 @@ def report_lost():
         title = request.form['title']
         description = request.form['description']
         image = request.files.get('image')
-        sorted_users = sorted(users.items(), key=lambda x: x[1]['points'], reverse=True)
 
-        # Handle image (optional)
         if image and image.filename != '':
             filename = secure_filename(image.filename)
             image.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
@@ -299,7 +297,11 @@ def report_lost():
 
         return redirect(url_for('home'))
 
+    users_ref = db.reference('users').get()
+    sorted_users = sorted(users_ref.items(), key=lambda x: x[1].get('points', 0), reverse=True) if users_ref else []
+
     return render_template('report_lost.html', sorted_users=sorted_users)
+
 @app.route('/report_found', methods=['POST'])
 def report_found():
     if 'username' not in session:
