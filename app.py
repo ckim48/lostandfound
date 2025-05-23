@@ -222,7 +222,8 @@ def home():
     from datetime import datetime
 
     firebase_items = db.reference('items').get()
-    all_items = list(firebase_items.values()) if firebase_items else []
+    all_items = [{'key': k, **v} for k, v in firebase_items.items()] if firebase_items else []
+
 
     def parse_date(item):
         try:
@@ -286,6 +287,20 @@ def signup():
 
     return render_template('signup.html')
 
+@app.route('/delete_item/<item_id>', methods=['POST'])
+def delete_item(item_id):
+    if 'username' not in session or session['username'] != 'testtest':
+        return jsonify({'error': 'Unauthorized'}), 403
+
+    items_ref = db.reference('items')
+    item = items_ref.child(item_id).get()
+
+    if not item:
+        return jsonify({'error': 'Item not found'}), 404
+
+    items_ref.child(item_id).delete()
+    flash("Item deleted successfully.")
+    return redirect(url_for('home'))
 
 @app.route('/logout')
 def logout():
