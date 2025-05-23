@@ -153,6 +153,9 @@ h1, h2, h3, h4, h5, h6 {
 .bg-bronze-subtle {
   background-color: #fbe4d5 !important;
 }
+.close-btn-offset {
+  top: 0.5rem !important;
+}
 
 .border-bronze {
   border-color: #cd7f32 !important;
@@ -166,6 +169,11 @@ h1, h2, h3, h4, h5, h6 {
   transform: scale(1.01);
   background-color: rgba(0, 43, 83, 0.05);
 }
+.image-preview {
+  max-height: 220px;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
 
   </style>
 </head>
@@ -176,10 +184,14 @@ h1, h2, h3, h4, h5, h6 {
     <div class="report-card">
       <img class="img-fluid d-block mx-auto" style="max-height:105px" src="../static/dolphin_logo.webp">
       <h3>Report a Lost Item</h3>
-      <form method="POST" enctype="multipart/form-data" action="/report_lost">
+      <form method="POST" enctype="multipart/form-data" action="/report_lost" id="lostForm" onsubmit="return validateLostForm()">
         <div class="form-floating mb-3">
           <input name="title" type="text" class="form-control" placeholder="Item Title" required>
           <label>Item Title</label>
+        </div>
+        <div class="form-floating mb-3">
+          <input name="lost_date" type="date" class="form-control" placeholder="Lost Date" required>
+          <label>Lost Date</label>
         </div>
 
         <div class="form-floating mb-3">
@@ -187,25 +199,23 @@ h1, h2, h3, h4, h5, h6 {
           <label>Description</label>
         </div>
 
-        <div class="mb-3">
+        <div class="mb-3 position-relative text-center">
           <label for="imageInput" class="btn-upload">
-            <i class="bi bi-camera me-1"></i> Take Photo or Choose Image
+            <i class="bi bi-camera me-1"></i> Take Photo or Choose Image (Optional)
           </label>
-          <input type="file" id="imageInput" name="image" accept="image/*" onchange="previewImage(event, 'preview')" required hidden>
-          <img id="preview" class="image-preview img-fluid" alt="Image Preview">
-        </div>
+          <input type="file" id="imageInput" name="image" accept="image/*" onchange="previewImage(event)" hidden>
 
+          <div id="imagePreviewWrapper" class="d-inline-block position-relative" style="display: none !important;">
+            <img id="preview" class="image-preview img-fluid mx-auto d-block" alt="Image Preview">
+            <button type="button" class="btn btn-sm btn-close position-absolute top-0 end-0 m-2 bg-white border-0 close-btn-offset" onclick="removeImage()" aria-label="Remove image"></button>
+          </div>
+        </div>
 
         <button type="submit" class="btn btn-brand w-100 mt-3">Submit Lost Report</button>
       </form>
     </div>
   </div>
-  <!-- Floating Leaderboard Button -->
-<button class="btn btn-primary shadow-lg rounded-circle leaderboard-btn" data-bs-toggle="modal" data-bs-target="#leaderboardModal" title="View Leaderboard">
-  <i class="bi bi-trophy-fill fs-4"></i>
-</button>
-<!-- Leaderboard Modal -->
-<!-- Leaderboard Modal -->
+
 <div class="modal fade" id="leaderboardModal" tabindex="-1" aria-labelledby="leaderboardModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content shadow">
@@ -233,15 +243,46 @@ h1, h2, h3, h4, h5, h6 {
   </div>
 </div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
-    function previewImage(event, id) {
-      const preview = document.getElementById(id);
-      const file = event.target.files[0];
-      if (file) {
-        preview.src = URL.createObjectURL(file);
-        preview.style.display = 'block';
-      }
+<script>
+  function previewImage(event) {
+    const preview = document.getElementById('preview');
+    const wrapper = document.getElementById('imagePreviewWrapper');
+    const file = event.target.files[0];
+    if (file) {
+      preview.src = URL.createObjectURL(file);
+      wrapper.style.display = 'inline-block';
     }
-  </script>
+  }
+
+  function removeImage() {
+    const input = document.getElementById('imageInput');
+    const preview = document.getElementById('preview');
+    const wrapper = document.getElementById('imagePreviewWrapper');
+
+    input.value = "";
+    preview.src = "";
+    wrapper.setAttribute("style", "display: none !important;");
+
+  }
+
+  function validateLostForm() {
+    const title = document.querySelector('[name="title"]').value.trim();
+    const description = document.querySelector('[name="description"]').value.trim();
+
+    if (!title || !description) {
+      alert("Please fill in both title and description.");
+      return false;
+    }
+    return true;
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('success') === 'true') {
+      alert("Your lost item report has been successfully submitted!");
+    }
+  });
+</script>
+
 </body>
 </html>

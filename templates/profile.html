@@ -130,7 +130,9 @@ h1, h2, h3, h4, h5, h6 {
   padding: 0.4em 0.8em;
   border-radius: 0.5rem;
 }
-
+.profile-card{
+  text-align:center;
+}
 .profile-card .bi-stars {
   vertical-align: middle;
 }
@@ -181,7 +183,15 @@ h1, h2, h3, h4, h5, h6 {
   transform: scale(1.01);
   background-color: rgba(0, 43, 83, 0.05);
 }
+    .bg-lost {
+  background-color: rgba(217, 84, 30) !important;
+  color: white !important;
+}
 
+.bg-returned {
+  background-color: rgba(172,212,241,1) !important;
+  color: white !important;
+}
   </style>
 </head>
 <body>
@@ -192,55 +202,77 @@ h1, h2, h3, h4, h5, h6 {
 <!--      <h2 class="fw-bold mt-4">{{ username | capitalize }}'s Profile</h2>-->
 <!--      <p class="text-muted mb-0">Points: <span class="fw-bold" style="color: var(&#45;&#45;brand-color)">{{ points }}</span></p>-->
     </div>
-<div class="row justify-content-center mb-5">
-  <div class="col-md-6">
-    <div class="card profile-card border-0 shadow-sm p-4">
-      <div class="card-body">
-        <div class="d-flex justify-content-between align-items-start">
-          <div>
-            <h3 class="fw-bold mb-2 text-dark">{{ username | capitalize }}</h3>
-            <p class="mb-2"><strong>Email:</strong> <span class="text-muted">{{ user.get('email') }}</span></p>
-            <div class="d-flex flex-wrap gap-2 mt-3">
-              {% if user.get('role') %}
-              <span class="badge bg-info text-dark px-3 py-2">{{ user.get('role', '').capitalize() }}</span>
-              {% endif %}
-              {% if user.get('grade') %}
-              <span class="badge bg-secondary px-3 py-2">{{ user.get('grade', '') }} Grade</span>
-              {% endif %}
-            </div>
-          </div>
-          <div class="text-end">
-            <span class="d-inline-flex align-items-center gap-2 bg-light px-3 py-2 rounded shadow-sm">
-              <i class="bi bi-stars text-warning fs-5"></i>
-              <span class="fw-bold text-primary">{{ points }} points</span>
-            </span>
-          </div>
+<div class="row g-5 mt-lg-5">
+  <!-- Left Column: Profile Card -->
+<div class="col-lg-3 mb-4">
+  <div class="position-sticky" style="top: 180px;">
+<div class="card profile-card border-0 p-4 position-relative">
+  <!-- Absolute edit icon in the card corner -->
+  <button
+    class="btn position-absolute top-0 end-0 m-2 p-1 text-muted"
+    style="border: none; background: transparent;"
+    data-bs-toggle="modal"
+    data-bs-target="#editProfileModal"
+    title="Edit Profile"
+  >
+    <i class="bi bi-pencil-square fs-5"></i>
+  </button>
+
+  <div class="card-body">
+    <div class="d-flex justify-content-center align-items-center">
+      <div>
+        <h3 class="fw-bold mb-2 text-dark">{{ username | capitalize }}</h3>
+        <p class="mb-2">
+          <strong>Email:</strong>
+          <span id="email" class="text-muted">{{ user.get('email') }}</span>
+        </p>
+        <div class="d-flex flex-wrap gap-2 mt-3 mb-2">
+          {% if user.get('role') %}
+          <span class="badge bg-info text-dark px-3 py-2" id="role">{{ user.get('role', '').capitalize() }}</span>
+          {% endif %}
+          {% if user.get('grade') %}
+          <span class="badge bg-secondary px-3 py-2" id="grade">{{ user.get('grade', '') }} Grade</span>
+          {% endif %}
         </div>
       </div>
     </div>
   </div>
 </div>
 
+  </div>
+</div>
 
 
+  <!-- Right Column: Items and Messages -->
+  <div class="col-lg-9">
     <!-- Lost Items Section -->
     <h5 class="section-title">Your Lost Items</h5>
     <div class="row mb-5">
       {% if lost_items %}
         {% for item in lost_items %}
         <div class="col-md-4 mb-4">
-          <div class="card">
+          <div class="card item-card">
             <img src="{{ url_for('static', filename='uploads/' + (item.image if item.image else 'placeholder.jpg')) }}"
                  class="card-img-top"
                  onerror="this.onerror=null;this.src='https://via.placeholder.com/400x250?text=No+Image';"
                  alt="Item Image">
             <div class="card-body">
               <h5 class="card-title">{{ item.title }}</h5>
-              <p class="card-text text-muted">{{ item.description }}</p>
+<p class="card-text text-muted">{{ item.description[:30] }}{% if item.description|length > 30 %}...{% endif %}</p>
               <div class="d-flex justify-content-between align-items-center">
-                <span class="badge-status {% if item.returned %}badge-returned{% else %}badge-pending{% endif %}">
-                  {{ 'Returned' if item.returned else 'Pending' }}
-                </span>
+<span class="badge
+  {% if item.status == 'returned' %}bg-returned
+  {% elif item.status == 'pending' %}bg-warning
+  {% else %}bg-lost{% endif %}">
+  {% if item.status == 'returned' %}
+    <i class="bi bi-check-circle-fill me-1"></i>Returned
+  {% elif item.status == 'pending' %}
+    <i class="bi bi-hourglass me-1"></i>Pending
+  {% else %}
+    <i class="bi bi-question-circle-fill me-1"></i>Lost
+  {% endif %}
+</span>
+
                 {% if not item.returned %}
                 <form method="POST" action="{{ url_for('mark_returned_from_profile') }}">
                   <input type="hidden" name="title" value="{{ item.title }}">
@@ -263,14 +295,14 @@ h1, h2, h3, h4, h5, h6 {
       {% if returned_items %}
         {% for item in returned_items %}
         <div class="col-md-4 mb-4">
-          <div class="card border border-light">
+          <div class="card item-card border border-light">
             <img src="{{ url_for('static', filename='uploads/' + (item.image if item.image else 'placeholder.jpg')) }}"
                  class="card-img-top"
                  onerror="this.onerror=null;this.src='https://via.placeholder.com/400x250?text=No+Image';"
                  alt="Item Image">
             <div class="card-body">
               <h5 class="card-title">{{ item.title }}</h5>
-              <p class="card-text text-muted">{{ item.description }}</p>
+<p class="card-text text-muted">{{ item.description[:30] }}{% if item.description|length > 30 %}...{% endif %}</p>
               <span class="badge-status badge-returned">Returned</span>
             </div>
           </div>
@@ -281,22 +313,22 @@ h1, h2, h3, h4, h5, h6 {
       {% endif %}
     </div>
 
-
+    <!-- Messages Section -->
     <h5 class="section-title mt-5">Messages You Received</h5>
     <div class="row">
       {% if received_messages %}
         {% for msg in received_messages %}
-        <div class="col-md-6 mb-4">
+        <div class="col-md-4 mb-4">
           <div class="card shadow-sm border-0">
             <div class="card-body">
-              <h6 class="fw-bold mb-2 text-primary">Someone may have found: "{{ msg.item }}"</h6>
-              <p class="mb-1"><strong>Name:</strong> {{ msg.finder_name }}</p>
-              <p class="mb-1"><strong>Grade:</strong> {{ msg.finder_grade }}</p>
-              <p class="mb-1"><strong>Contact:</strong> {{ msg.finder_contact }}</p>
-              <p class="mb-2"><strong>Message:</strong><br>{{ msg.message }}</p>
-              <span class="badge {{ 'bg-success' if msg.seen else 'bg-secondary' }}">
-                {{ 'Seen' if msg.seen else 'New' }}
-              </span>
+              <h6 class="fw-bold mb-2 text-primary">Someone found: "{{ msg.item }}"</h6>
+              <p class="mb-1"><span style="font-weight:600;">Name:</span> {{ msg.finder_name }}</p>
+              <p class="mb-1"><span style="font-weight:600;">Grade:</span> {{ msg.finder_grade }}</p>
+              <p class="mb-1"><span style="font-weight:600;">Contact:</span> {{ msg.finder_contact }}</p>
+              <p class="mb-2"><span style="font-weight:600;">Message:</span> <br>{{ msg.message }}</p>
+<!--              <span class="badge {{ 'bg-success' if msg.seen else 'bg-secondary' }}">-->
+<!--                {{ 'Seen' if msg.seen else 'New' }}-->
+<!--              </span>-->
             </div>
           </div>
         </div>
@@ -305,18 +337,58 @@ h1, h2, h3, h4, h5, h6 {
         <p class="text-muted">No one has contacted you about your items yet.</p>
       {% endif %}
     </div>
-
-
-    <div class="text-center mt-5">
-      <a href="{{ url_for('home') }}" class="btn btn-back px-4 py-2">Back to Home</a>
-    </div>
   </div>
+</div>
+
+<!-- Back Button -->
+<div class="text-center mt-5">
+  <a href="{{ url_for('logout') }}" class="btn btn-back px-4 py-2">Logout</a>
+</div>
+
+    <!-- Edit Profile Modal -->
+<div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <form id="editProfileForm" class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Edit Profile</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Email</label>
+            <input type="email" name="email" class="form-control" value="{{ user.email }}">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Grade</label>
+            <select name="grade" class="form-select">
+              {% for g in range(1, 13) %}
+              <option value="{{ g }}" {% if user.grade == g|string %}selected{% endif %}>{{ g }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Role</label>
+            <select name="role" class="form-select">
+              <option value="student" {% if user.role == 'student' %}selected{% endif %}>Student</option>
+              <option value="teacher" {% if user.role == 'teacher' %}selected{% endif %}>Teacher</option>
+            </select>
+          </div>
+        </div>
+
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
 
   <!-- Floating Leaderboard Button -->
-<button class="btn btn-primary shadow-lg rounded-circle leaderboard-btn" data-bs-toggle="modal" data-bs-target="#leaderboardModal" title="View Leaderboard">
-  <i class="bi bi-trophy-fill fs-4"></i>
-</button>
-<!-- Leaderboard Modal -->
+<!--<button class="btn btn-primary shadow-lg rounded-circle leaderboard-btn" data-bs-toggle="modal" data-bs-target="#leaderboardModal" title="View Leaderboard">-->
+<!--  <i class="bi bi-trophy-fill fs-4"></i>-->
+<!--</button>-->
+
 <!-- Leaderboard Modal -->
 <div class="modal fade" id="leaderboardModal" tabindex="-1" aria-labelledby="leaderboardModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
@@ -344,6 +416,80 @@ h1, h2, h3, h4, h5, h6 {
     </div>
   </div>
 </div>
+<div class="modal fade" id="returnSuccessModal" tabindex="-1" aria-labelledby="returnSuccessModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content shadow">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title" id="returnSuccessModalLabel">Congratulations!</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center">
+        <p class="mb-0">Your item was successfully marked as returned!</p>
+      </div>
+      <div class="modal-footer justify-content-center">
+        <button type="button" class="btn btn-success px-4" data-bs-dismiss="modal">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+    <script>
+document.getElementById('editProfileForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+
+  const formData = new FormData(this);
+  const data = {
+    email: formData.get('email'),
+    grade: formData.get('grade'),
+    role: formData.get('role')
+  };
+
+  fetch('/api/update_profile', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  })
+  .then(res => res.json())
+  .then(result => {
+    if (result.success) {
+      document.getElementById('email').textContent = data.email;
+      document.getElementById('grade').textContent = data.grade + ' Grade';
+      document.getElementById('role').textContent = data.role.charAt(0).toUpperCase() + data.role.slice(1);
+      bootstrap.Modal.getInstance(document.getElementById('editProfileModal')).hide();
+    } else {
+      alert('Update failed: ' + result.error);
+    }
+  })
+  .catch(err => {
+    console.error('Error:', err);
+    alert('Something went wrong.');
+  });
+});
+</script>
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <script>
+      window.addEventListener('load', function () {
+        const msg = {{ messages[0] | tojson }};
+        if (msg.includes("marked as returned")) {
+          const modal = new bootstrap.Modal(document.getElementById('returnSuccessModal'));
+          modal.show();
+        }
+      });
+    </script>
+  {% endif %}
+{% endwith %}
+<script>
+  window.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('success') === 'true') {
+      alert("Your lost item report has been successfully submitted!");
+    }
+  });
+</script>
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

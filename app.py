@@ -213,12 +213,37 @@ def insert_mock_data():
     insert_mock_items()
     return "Mock data inserted successfully!"
 
+from flask import request
+from math import ceil
+
 @app.route('/')
 def home():
     sorted_users = sorted(users.items(), key=lambda x: x[1]['points'], reverse=True)
+    from datetime import datetime
+
     firebase_items = db.reference('items').get()
-    items = list(firebase_items.values()) if firebase_items else []
-    return render_template('index.html', items=items, sorted_users=sorted_users)
+    all_items = list(firebase_items.values()) if firebase_items else []
+
+    def parse_date(item):
+        try:
+            return datetime.strptime(item.get('lost_date', ''), '%Y-%m-%d')
+        except:
+            return datetime.min
+
+    all_items.sort(key=parse_date, reverse=True)
+
+    # Pagination logic
+    per_page = 6
+    page = int(request.args.get('page', 1))
+    total_pages = ceil(len(all_items) / per_page)
+    start = (page - 1) * per_page
+    end = start + per_page
+    items = all_items[start:end]
+
+    return render_template('index.html', items=items, sorted_users=sorted_users, page=page, total_pages=total_pages)
+from flask import jsonify
+
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -268,6 +293,8 @@ def logout():
     return redirect(url_for('home'))
 
 
+from flask import flash
+
 @app.route('/report_lost', methods=['GET', 'POST'])
 def report_lost():
     if 'username' not in session:
@@ -276,6 +303,7 @@ def report_lost():
     if request.method == 'POST':
         title = request.form['title']
         description = request.form['description']
+        lost_date = request.form['lost_date']
         image = request.files.get('image')
 
         if image and image.filename != '':
@@ -284,23 +312,25 @@ def report_lost():
         else:
             filename = 'placeholder.jpg'
 
-        # Save to Firebase
-        item_ref = db.reference('items')
-        item_ref.push({
+        db.reference('items').push({
             'title': title,
             'description': description,
+            'lost_date': lost_date,
             'image': filename,
             'owner': session['username'],
             'status': 'lost',
             'returned': False
         })
 
-        return redirect(url_for('home'))
+        flash("Lost item reported successfully!")
+        return redirect(url_for('profile', success='true'))
 
     users_ref = db.reference('users').get()
     sorted_users = sorted(users_ref.items(), key=lambda x: x[1].get('points', 0), reverse=True) if users_ref else []
 
     return render_template('report_lost.html', sorted_users=sorted_users)
+
+
 
 @app.route('/report_found', methods=['POST'])
 def report_found():
@@ -330,14 +360,24 @@ def report_found():
     return redirect(url_for('home'))
 
 
+from flask import flash
+
+
 @app.route('/mark_returned/<int:item_id>')
 def mark_returned(item_id):
     if 'username' not in session:
         return redirect(url_for('login'))
+
     if 0 <= item_id < len(items):
         items[item_id]['returned'] = True
-        users[session['username']]['points'] += 10  # Reward points
+
+        # Firebase points update
+        user_ref = db.reference(f'users/{session["username"]}')
+        # ✅ Flash success message
+        flash('Your item has been marked as returned and 10 points were awarded.')
+
     return redirect(url_for('home'))
+
 
 @app.route('/explore')
 def explore_items():
@@ -362,6 +402,8 @@ def profile():
     lost_items = [item for item in user_items if item['status'] == 'lost' and not item['returned']]
     found_items = [item for item in user_items if item['status'] == 'found' and not item['returned']]
     returned_items = [item for item in user_items if item['returned']]
+    for item in user_items:
+        item['status'] = compute_status(item, received_messages)
 
     return render_template('profile.html',
                            username=username,
@@ -376,6 +418,8 @@ def profile():
 
 
 
+from flask import flash
+
 @app.route('/mark_returned_from_profile', methods=['POST'])
 def mark_returned_from_profile():
     if 'username' not in session:
@@ -385,18 +429,47 @@ def mark_returned_from_profile():
     items_ref = db.reference('items')
     all_items = items_ref.get()
 
-    # Find and update the first match (you can refine by ID if you later use them)
     if all_items:
         for key, item in all_items.items():
             if item['owner'] == session['username'] and item['title'] == title and not item['returned']:
                 items_ref.child(key).update({'returned': True})
-                # Add 10 points
+
                 user_ref = db.reference(f'users/{session["username"]}')
                 current_points = user_ref.child('points').get() or 0
                 user_ref.update({'points': current_points + 10})
+
+                flash('Congrats! Your item has been marked as returned and you earned 10 points!')
                 break
 
     return redirect(url_for('profile'))
+def compute_status(item, messages):
+    if item.get('returned'):
+        return 'returned'
+    if any(m['item'] == item['title'] and m['to'] == item['owner'] for m in messages):
+        return 'pending'
+    return 'lost'
+
+@app.route('/api/update_profile', methods=['POST'])
+def update_profile():
+    if 'username' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+
+    data = request.get_json()
+    username = session['username']
+
+    # Validate input (optional but recommended)
+    if not data.get('email') or not data.get('grade') or not data.get('role'):
+        return jsonify({'success': False, 'error': 'Missing fields'}), 400
+
+    # Update Firebase user profile
+    user_ref = db.reference(f'users/{username}')
+    user_ref.update({
+        'email': data['email'],
+        'grade': data['grade'],
+        'role': data['role']
+    })
+
+    return jsonify({'success': True})
 
 
 if __name__ == '__main__':
