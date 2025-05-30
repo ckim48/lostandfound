@@ -244,6 +244,40 @@ def home():
     return render_template('index.html', items=all_items, sorted_users=sorted_users, page=page, total_pages=total_pages)
 from flask import jsonify
 
+@app.route('/edit_item/<item_id>', methods=['GET', 'POST'])
+def edit_item(item_id):
+    if 'username' not in session:
+        return redirect(url_for('login'))
+
+    item_ref = db.reference(f'items/{item_id}')
+    item = item_ref.get()
+
+    if not item or item['owner'] != session['username']:
+        flash("You can only edit your own items.")
+        return redirect(url_for('profile'))
+
+    if request.method == 'POST':
+        title = request.form['title']
+        description = request.form['description']
+        lost_date = request.form['lost_date']
+        image = request.files.get('image')
+
+        updated_data = {
+            'title': title,
+            'description': description,
+            'lost_date': lost_date,
+        }
+
+        if image and image.filename != '':
+            filename = secure_filename(image.filename)
+            image.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            updated_data['image'] = filename
+
+        item_ref.update(updated_data)
+        flash('Item updated successfully!')
+        return redirect(url_for('profile'))
+
+    return render_template('edit_item.html', item=item, item_id=item_id)
 
 
 @app.route('/login', methods=['GET', 'POST'])
