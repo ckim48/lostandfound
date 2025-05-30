@@ -241,7 +241,7 @@ def home():
     end = start + per_page
     items = all_items[start:end]
 
-    return render_template('index.html', items=items, sorted_users=sorted_users, page=page, total_pages=total_pages)
+    return render_template('index.html', items=all_items, sorted_users=sorted_users, page=page, total_pages=total_pages)
 from flask import jsonify
 
 

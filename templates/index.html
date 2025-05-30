@@ -233,7 +233,12 @@ h1, h2, h3, h4, h5, h6 {
   transform: scale(1);
 }
 
-
+.bg-success {
+  background-color: rgba(0,43,83,1) !important;
+}
+    .btn-success{
+        background-color: rgba(0,43,83,1) !important;
+    }
 
 
 
@@ -285,11 +290,13 @@ h1, h2, h3, h4, h5, h6 {
 
         <div class="input-group shadow-sm">
           <label class="input-group-text bg-white" for="sortSelect"><i class="bi bi-sort-alpha-down"></i></label>
-          <select id="sortSelect" class="form-select">
-            <option value="default">Sort By</option>
-            <option value="latest">History (Latest)</option>
-            <option value="name">Name (A-Z)</option>
-          </select>
+            <select id="sortSelect" class="form-select">
+              <option value="default">Sort By</option>
+              <option value="latest">History (latest)</option>
+              <option value="oldest">History (oldest)</option>
+              <option value="name">Name (A-Z)</option>
+            </select>
+
         </div>
       </div>
     </div>
@@ -301,7 +308,7 @@ h1, h2, h3, h4, h5, h6 {
            data-status="{{ 'returned' if item.returned else 'lost' }}"
            data-title="{{ item.title|lower }}"
            data-owner="{{ item.owner|lower }}"
-           data-date="{{ item.lost_date or '' }}">
+           data-date="{{ item.lost_date}}">
 
         <div class="card {% if item.returned %}border-success{% endif %}">
           {% if session.get('username') == 'testtest' %}
@@ -321,13 +328,10 @@ h1, h2, h3, h4, h5, h6 {
             <div class="d-flex justify-content-between align-items-center mb-2">
               <h5 class="card-title">{{ item.title }}</h5>
 <span class="badge
-  {% if item.status == 'returned' %}bg-returned
-  {% elif item.status == 'pending' %}bg-warning
+  {% if item.returned == true %}bg-returned
   {% else %}bg-lost{% endif %}">
-  {% if item.status == 'returned' %}
+  {% if item.returned == true %}
     <i class="bi bi-check-circle-fill me-1"></i>Returned
-  {% elif item.status == 'pending' %}
-    <i class="bi bi-hourglass me-1"></i>Pending
   {% else %}
     <i class="bi bi-question-circle-fill me-1"></i>Lost
   {% endif %}
@@ -421,33 +425,7 @@ h1, h2, h3, h4, h5, h6 {
       {% endfor %}
 
     </div>
-<!-- Pagination -->
-<nav class="mt-4">
-  <ul class="pagination justify-content-center">
-    {% if page > 1 %}
-      <li class="page-item">
-<a class="page-link" href="{{ url_for('home', page=page-1) }}#all-items">Previous</a>
-      </li>
-    {% else %}
-      <li class="page-item disabled"><span class="page-link">Previous</span></li>
-    {% endif %}
-
-    {% for p in range(1, total_pages + 1) %}
-      <li class="page-item {% if p == page %}active{% endif %}">
-<a class="page-link" href="{{ url_for('home', page=p) }}#all-items">{{ p }}</a>
-      </li>
-    {% endfor %}
-
-    {% if page < total_pages %}
-      <li class="page-item">
-<a class="page-link" href="{{ url_for('home', page=page+1) }}#all-items">Next</a>
-      </li>
-    {% else %}
-      <li class="page-item disabled"><span class="page-link">Next</span></li>
-    {% endif %}
-  </ul>
-</nav>
-
+<div id="pagination" class="mt-4 d-flex justify-content-center"></div>
 
 
     <!-- Success Modal -->
@@ -531,9 +509,17 @@ const iso = new Isotope('.grid', {
   layoutMode: 'fitRows',
   getSortData: {
     name: '[data-title]',
-    latest: '[data-date]', // works if date is in ISO format like YYYY-MM-DD
+    latest: function(itemElem) {
+      const dateStr = itemElem.getAttribute('data-date');
+      return dateStr ? Date.parse(dateStr) : 0;
+    }
+  },
+  sortAscending: {
+    name: true,
+    latest: false
   }
 });
+
 
 
 
@@ -559,36 +545,33 @@ const iso = new Isotope('.grid', {
     });
   }
 
-  function sortItems() {
-    const grid = document.querySelector(".grid");
-    const itemsArray = Array.from(grid.querySelectorAll(".grid-item"));
-
-    if (sortSelect.value === "name") {
-      itemsArray.sort((a, b) =>
-        a.dataset.title.localeCompare(b.dataset.title)
-      );
-    } else if (sortSelect.value === "latest") {
-      itemsArray.sort((a, b) => {
-        const dateA = new Date(a.dataset.date || '1970-01-01');
-        const dateB = new Date(b.dataset.date || '1970-01-01');
-        return dateB - dateA; // latest first
-      });
-    }
-
-    itemsArray.forEach(item => grid.appendChild(item));
-    iso.arrange(); // Refresh Isotope layout
-  }
 
   searchInput.addEventListener("input", filterIsotope);
   statusFilter.addEventListener("change", filterIsotope);
 sortSelect.addEventListener("change", () => {
-  const sortByValue = sortSelect.value === "default" ? "original-order" : sortSelect.value;
-  iso.arrange({ sortBy: sortByValue });
-  filterIsotope();
+  let sortByValue = sortSelect.value;
+  let ascending = true;
+
+  if (sortByValue === "default") {
+    sortByValue = "original-order";
+  }
+  if (sortByValue === "latest") {
+    sortByValue = "latest";
+    ascending = false; // Newest first
+  }
+  if (sortByValue === "oldest") {
+    sortByValue = "latest";
+    ascending = true; // Oldest first
+  }
+  if (sortByValue === "name") {
+    sortByValue = "name";
+    ascending = true;
+  }
+
+  iso.arrange({ sortBy: sortByValue, sortAscending: ascending });
+//  filterIsotope();
 });
-  // Initial sort on page load (optional)
-  sortItems();
-  filterIsotope();
+
 </script>
 
 {% with messages = get_flashed_messages() %}
@@ -619,37 +602,117 @@ sortSelect.addEventListener("change", () => {
     waveSpeed: 0.6,
     zoom: 0.85
   })
+</script>
+  <script>
+const itemsPerPage = 6; // Set your desired items per page
+let currentPage = 1;
 
-function sortItems() {
-  const grid = document.querySelector(".grid");
-  const itemsArray = Array.from(grid.querySelectorAll(".grid-item"));
-
-  if (sortSelect.value === "name") {
-    itemsArray.sort((a, b) => {
-      const titleA = (a.dataset.title || '').toLowerCase();
-      const titleB = (b.dataset.title || '').toLowerCase();
-      return titleA.localeCompare(titleB);
-    });
-  } else if (sortSelect.value === "latest") {
-    itemsArray.sort((a, b) => {
-      const dateA = new Date(a.dataset.date || '1970-01-01');
-      const dateB = new Date(b.dataset.date || '1970-01-01');
-      return dateB - dateA; // latest first
-    });
-  }
-
-  itemsArray.forEach(item => grid.appendChild(item));
-  iso.arrange(); // Refresh Isotope layout
+function getFilteredItems() {
+  return iso.getFilteredItemElements();
 }
 
 
+function showPage(page) {
+  const filteredItems = getFilteredItems();
+  const totalItems = filteredItems.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  currentPage = Math.min(Math.max(1, page), totalPages);
 
+  // Hide all, show only items for this page
+  filteredItems.forEach((item, i) => {
+    item.style.display = (i >= (currentPage - 1) * itemsPerPage && i < currentPage * itemsPerPage) ? '' : 'none';
+  });
+
+  // --- Add this line ---
+  iso.layout();
+
+  // Build pagination controls
+  let paginationHtml = '';
+  if (totalPages > 1) {
+    paginationHtml += `<ul class="pagination justify-content-center">`;
+    paginationHtml += `<li class="page-item${currentPage === 1 ? ' disabled' : ''}"><a class="page-link" href="#" data-page="${currentPage - 1}">Previous</a></li>`;
+    for (let p = 1; p <= totalPages; p++) {
+      paginationHtml += `<li class="page-item${p === currentPage ? ' active' : ''}"><a class="page-link" href="#" data-page="${p}">${p}</a></li>`;
+    }
+    paginationHtml += `<li class="page-item${currentPage === totalPages ? ' disabled' : ''}"><a class="page-link" href="#" data-page="${currentPage + 1}">Next</a></li>`;
+    paginationHtml += `</ul>`;
+  }
+  document.getElementById('pagination').innerHTML = paginationHtml;
+
+  // Handle click events
+  document.querySelectorAll('#pagination .page-link').forEach(link => {
+    link.onclick = function(e) {
+      e.preventDefault();
+      const targetPage = Number(this.getAttribute('data-page'));
+      if (targetPage >= 1 && targetPage <= totalPages) showPage(targetPage);
+    };
+  });
+}
+
+
+// Hook pagination to Isotope filtering/sorting
+function updatePagination() {
+  showPage(1); // Reset to page 1 on filter/sort change
+}
+function filterAndPaginate() {
+  const query = searchInput.value.toLowerCase();
+  const status = statusFilter.value;
+
+  iso.arrange({
+    filter: function (itemElem) {
+      const title = itemElem.getAttribute('data-title') || '';
+      const owner = itemElem.getAttribute('data-owner') || '';
+      const itemStatus = itemElem.getAttribute('data-status') || '';
+
+      const matchesSearch = title.includes(query) || owner.includes(query);
+      const matchesStatus = status === "all" || itemStatus === status;
+
+      return matchesSearch && matchesStatus;
+    }
+  });
+
+  // Trigger pagination update after filtering
+  showPage(1);
+}
+
+searchInput.addEventListener("input", filterAndPaginate);
+statusFilter.addEventListener("change", filterAndPaginate);
 sortSelect.addEventListener("change", () => {
-  sortItems();
-  filterIsotope(); // Keep filters in sync
+  let sortByValue = sortSelect.value;
+  let ascending = true;
+
+  if (sortByValue === "default") {
+    sortByValue = "original-order";
+  } else if (sortByValue === "latest") {
+    sortByValue = "latest";
+    ascending = false;
+  } else if (sortByValue === "oldest") {
+    sortByValue = "latest";
+    ascending = true;
+  } else if (sortByValue === "name") {
+    sortByValue = "name";
+    ascending = true;
+  }
+
+  iso.arrange({
+    sortBy: sortByValue,
+    sortAscending: ascending,
+  });
+
+  showPage(1);  // Update pagination after sorting
+});
+
+
+// After Isotope arrange, re-run pagination
+iso.on('arrangeComplete', updatePagination);
+
+// On initial load
+document.addEventListener('DOMContentLoaded', function() {
+  updatePagination();
 });
 
 </script>
+
 <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
 <script>
   AOS.init({

@@ -81,7 +81,8 @@ h1, h2, h3, h4, h5, h6 {
     <form method="POST">
       <div class="mb-3">
         <label class="form-label">Username</label>
-        <input name="username" class="form-control" placeholder="Enter your username" required>
+        <input name="username" class="form-control" placeholder="Enter your username" required        pattern="^[a-zA-Z0-9_]+$"
+       title="Username can only contain letters, numbers, and underscores.">
       </div>
       <div class="mb-3">
         <label class="form-label">Password</label>
