@@ -42,7 +42,7 @@ body::before {
   left: 50%;
   width: 850px;
   height: 850px;
-  background: url('{{ url_for("static", filename="logo.png") }}') no-repeat center center;
+  background: url('{{ url_for("static", filename="dolphin_logo.webp") }}') no-repeat center center;
   background-size: contain;
   opacity: 0.025;
   transform: translateX(-50%);
@@ -209,7 +209,7 @@ h1, h2, h3, h4, h5, h6 {
 <!--      <h2 class="fw-bold mt-4">{{ username | capitalize }}'s Profile</h2>-->
 <!--      <p class="text-muted mb-0">Points: <span class="fw-bold" style="color: var(&#45;&#45;brand-color)">{{ points }}</span></p>-->
     </div>
-<div class="row g-5 mt-lg-5">
+<div class="row g-5 mt-5">
   <!-- Left Column: Profile Card -->
 <div class="col-lg-3 mb-4">
   <div class="position-sticky" style="top: 120px;">
@@ -278,11 +278,14 @@ h1, h2, h3, h4, h5, h6 {
 <span class="badge
   {% if item.status == 'returned' %}bg-returned
   {% elif item.status == 'pending' %}bg-warning
+   {% elif item.status == 'found' %}bg-primary
   {% else %}bg-lost{% endif %}">
   {% if item.status == 'returned' %}
     <i class="bi bi-check-circle-fill me-1"></i>Returned
   {% elif item.status == 'pending' %}
     <i class="bi bi-hourglass me-1"></i>Pending
+    {% elif item.status == 'found' %}
+    <i class="bi bi-bell"></i> Found
   {% else %}
     <i class="bi bi-question-circle-fill me-1"></i>Lost
   {% endif %}
@@ -538,7 +541,7 @@ document.getElementById('editProfileForm').addEventListener('submit', function(e
   window.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('success') === 'true') {
-      alert("Your lost item report has been successfully submitted!");
+      alert("Your item report has been successfully submitted!");
     }
   });
 </script>

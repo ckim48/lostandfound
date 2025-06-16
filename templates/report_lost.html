@@ -2,58 +2,20 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Report Lost Item</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="icon" href="{{ url_for('static', filename='favicon.png') }}">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Report Item</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
   <style>
     :root {
-         --bs-primary: rgba(0,43,83,1);
-    --bs-primary-rgb: 0,43,83;
-              --brand-color: rgba(0,43,83,1);
-      --brand-hover: #001d3d;
-      --found-color: rgba(172,212,241,1);
-      --returned-color: rgba(165,179,171,1);
       --brand-color: rgba(0,43,83,1);
       --brand-hover: #001d3d;
-      --found-color: rgba(172,212,241,1);
-      --returned-color: rgba(165,179,171,1);
     }
 
     body {
       background: linear-gradient(to right, #f4f6f8, #e9f0f7);
-      font-family: 'Segoe UI', sans-serif;
+      font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS", sans-serif;
       padding-top: 90px;
-    }
-    body {
-  font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS", sans-serif;
-}
-
-h1, h2, h3, h4, h5, h6 {
-  font-family: "Minion Pro", "Georgia", serif;
-}
-      .btn-primary {
-    background-color: rgba(0,43,83,1) !important;
-    border-color: rgba(0,43,83,1) !important;
-  }
-
-  .btn-primary:hover {
-    background-color: #001d3d !important;
-    border-color: #001d3d !important;
-  }
-    .navbar {
-      position: fixed;
-      top: 0;
-      width: 100%;
-      z-index: 1050;
-    }
-
-    .page-wrapper {
-      display: flex;
-      justify-content: center;
-      padding: 2rem 1rem;
     }
 
     .report-card {
@@ -61,65 +23,34 @@ h1, h2, h3, h4, h5, h6 {
       border-radius: 1.5rem;
       padding: 2.5rem 2rem;
       box-shadow: 0 15px 35px rgba(0,0,0,0.08);
-      max-width: 650px;
+      max-width: 700px;
       width: 100%;
-      z-index:2;
+      z-index: 2;
       animation: fadeIn 0.6s ease-in-out;
     }
 
-    .report-card h3 {
-      color: var(--brand-color);
+    .nav-tabs .nav-link {
       font-weight: 600;
-      margin-bottom: 1.5rem;
-      text-align: center;
+      color: var(--brand-color);
     }
 
-    .form-control,
-    .form-control:focus,
-    .form-select {
-      border-radius: 0.5rem;
-      border-color: #ccc;
-      box-shadow: none;
-    }
-
-    .form-control:focus {
-      border-color: var(--brand-color);
-      box-shadow: 0 0 0 0.2rem rgba(0, 43, 83, 0.2);
-    }
-
-    .btn-brand {
+    .nav-tabs .nav-link.active {
       background-color: var(--brand-color);
-      color: white;
-      border: none;
+      color: #fff;
+      border-color: var(--brand-color) var(--brand-color) #fff;
+    }
+
+    .btn-upload, .btn-brand {
       border-radius: 0.5rem;
       font-weight: 500;
-      transition: background-color 0.3s;
-    }
-
-    .btn-brand:hover {
-      background-color: var(--brand-hover);
-      color:white;
-    }
-
-    .image-preview {
-      display: none;
-      max-height: 220px;
-      margin-top: 12px;
-      border-radius: 0.5rem;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      width: 100%;
+      text-align: center;
     }
 
     .btn-upload {
-      display: inline-block;
-      cursor: pointer;
       padding: 10px 16px;
-      font-weight: 500;
       color: var(--brand-color);
       border: 1px solid var(--brand-color);
-      border-radius: 0.5rem;
-      transition: all 0.3s ease;
-      width: 100%;
-      text-align: center;
     }
 
     .btn-upload:hover {
@@ -127,166 +58,147 @@ h1, h2, h3, h4, h5, h6 {
       color: white;
     }
 
+    .btn-brand {
+      background-color: var(--brand-color);
+      color: white;
+      border: none;
+      transition: background-color 0.3s;
+    }
+
+    .btn-brand:hover {
+      background-color: var(--brand-hover);
+    }
+
+    .image-preview {
+      max-height: 220px;
+      margin-top: 12px;
+      border-radius: 0.5rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      display: none;
+    }
+
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(20px); }
       to { opacity: 1; transform: translateY(0); }
     }
-
-        .leaderboard-btn {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  width: 56px;
-  height: 56px;
-  font-size: 1.25rem;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1055;
-}
-
-.bg-warning-subtle {
-  background-color: #fff9db !important;
-}
-.bg-secondary-subtle {
-  background-color: #eaeaea !important;
-}
-.bg-bronze-subtle {
-  background-color: #fbe4d5 !important;
-}
-.close-btn-offset {
-  top: 0.5rem !important;
-}
-
-.border-bronze {
-  border-color: #cd7f32 !important;
-}
-
-.leaderboard-entry {
-  transition: all 0.2s ease-in-out;
-}
-
-.leaderboard-entry:hover {
-  transform: scale(1.01);
-  background-color: rgba(0, 43, 83, 0.05);
-}
-.image-preview {
-  max-height: 220px;
-  border-radius: 0.5rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-.bg-primary {
-  background-color: rgba(0,43,83,1) !important;
-}
-
   </style>
 </head>
 <body>
   {% include 'nav.html' %}
 
-  <div class="page-wrapper">
-    <div class="report-card">
-      <img class="img-fluid d-block mx-auto" style="max-height:105px" src="../static/dolphin_logo.webp">
-      <h3>Report a Lost Item</h3>
-      <form method="POST" enctype="multipart/form-data" action="/report_lost" id="lostForm" onsubmit="return validateLostForm()">
-        <div class="form-floating mb-3">
-          <input name="title" type="text" class="form-control" placeholder="Item Title" required>
-          <label>Item Title</label>
-        </div>
-        <div class="form-floating mb-3">
-          <input name="lost_date" type="date" class="form-control" placeholder="Lost Date" required>
-          <label>Lost Date</label>
-        </div>
+  <div class="container page-wrapper">
+    <div class="report-card mx-auto">
+      <img class="img-fluid d-block mx-auto mb-3" style="max-height:105px" src="../static/dolphin_logo.webp" alt="Logo"/>
 
-        <div class="form-floating mb-3">
-          <textarea name="description" class="form-control" placeholder="Description" style="height: 100px;" required></textarea>
-          <label>Description</label>
-        </div>
+      <ul class="nav nav-tabs mb-4" id="reportTab" role="tablist">
+        <li class="nav-item" role="presentation">
+<button class="nav-link {% if status == 'lost' %}active{% endif %}" id="lost-tab" data-bs-toggle="tab" data-bs-target="#lost" type="button" role="tab">
+  Report Lost Item
+</button>
 
-        <div class="mb-3 position-relative text-center">
-          <label for="imageInput" class="btn-upload">
-            <i class="bi bi-camera me-1"></i> Take Photo or Choose Image (Optional)
-          </label>
-          <input type="file" id="imageInput" name="image" accept="image/*" onchange="previewImage(event)" hidden>
 
-          <div id="imagePreviewWrapper" class="d-inline-block position-relative" style="display: none !important;">
-            <img id="preview" class="image-preview img-fluid mx-auto d-block" alt="Image Preview">
-            <button type="button" class="btn btn-sm btn-close position-absolute top-0 end-0 m-2 bg-white border-0 close-btn-offset" onclick="removeImage()" aria-label="Remove image"></button>
-          </div>
-        </div>
+        </li>
+        <li class="nav-item" role="presentation">
+<button class="nav-link {% if status == 'found' %}active{% endif %}" id="found-tab" data-bs-toggle="tab" data-bs-target="#found" type="button" role="tab">
+  Report Found Item
+</button>        </li>
+      </ul>
 
-        <button type="submit" class="btn btn-brand w-100 mt-3">Submit Lost Report</button>
-      </form>
-    </div>
-  </div>
-
-<div class="modal fade" id="leaderboardModal" tabindex="-1" aria-labelledby="leaderboardModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content shadow">
-      <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title" id="leaderboardModalLabel"><i class="bi bi-trophy-fill me-2"></i>Points Leaderboard</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body px-4 pt-3 pb-4">
-        {% for user, data in sorted_users %}
-          <div class="d-flex justify-content-between align-items-center px-3 py-2 mb-2 rounded shadow-sm leaderboard-entry
-                      border-start border-5
-                      {% if loop.index == 1 %}bg-warning-subtle border-warning fw-bold
-                      {% elif loop.index == 2 %}bg-secondary-subtle border-secondary fw-semibold
-                      {% elif loop.index == 3 %}bg-bronze-subtle border-bronze fw-medium
-                      {% else %}bg-white border-light-subtle{% endif %}">
-            <div class="d-flex align-items-center gap-3">
-              <span class="fs-5 fw-bold text-muted">#{{ loop.index }}</span>
-              <span class="fs-6">{{ user }}</span>
-            </div>
-            <span class="badge bg-primary rounded-pill px-3">{{ data.points }} pts</span>
-          </div>
-        {% endfor %}
-      </div>
-    </div>
-  </div>
+      <div class="tab-content" id="reportTabContent">
+<!-- Lost Form -->
+<div class="tab-pane fade {% if status == 'lost' %}show active{% endif %}" id="lost" role="tabpanel">
+<form id="lostForm" method="POST" enctype="multipart/form-data" onsubmit="return validateLostForm()">
+    {% set status = 'lost' %}
+    {% include 'report_form_common.html' %}
+    <input type="hidden" name="status" value="lost">
+    <button type="submit" class="btn btn-brand mt-3">Submit Lost Report</button>
+  </form>
 </div>
+
+<!-- Found Form -->
+<div class="tab-pane fade {% if status == 'found' %}show active{% endif %}" id="found" role="tabpanel">
+<form id="foundForm" method="POST" enctype="multipart/form-data" onsubmit="return validateFoundForm()">
+    {% set status = 'found' %}
+    {% include 'report_form_common.html' %}
+    <input type="hidden" name="status" value="found">
+    <button type="submit" class="btn btn-brand mt-3">Submit Found Report</button>
+  </form>
+</div>
+
+
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-  function previewImage(event) {
-    const preview = document.getElementById('preview');
-    const wrapper = document.getElementById('imagePreviewWrapper');
-    const file = event.target.files[0];
-    if (file) {
-      preview.src = URL.createObjectURL(file);
-      wrapper.style.display = 'inline-block';
-    }
-  }
+  <script>
+function previewImage(event, type) {
+  const preview = document.getElementById(`preview_${type}`);
+  const wrapper = document.getElementById(`imagePreviewWrapper_${type}`);
+  const file = event.target.files[0];
 
-  function removeImage() {
-    const input = document.getElementById('imageInput');
-    const preview = document.getElementById('preview');
-    const wrapper = document.getElementById('imagePreviewWrapper');
-
-    input.value = "";
+  if (file && file.type.startsWith("image/")) {
+    preview.src = URL.createObjectURL(file);
+    wrapper.style.display = 'inline-block';
+    preview.style.display = 'block';
+  } else {
     preview.src = "";
-    wrapper.setAttribute("style", "display: none !important;");
-
+    wrapper.style.display = 'none';
+    preview.style.display = 'none';
   }
+}
 
-  function validateLostForm() {
-    const title = document.querySelector('[name="title"]').value.trim();
-    const description = document.querySelector('[name="description"]').value.trim();
+function removeImage(type) {
+  const preview = document.getElementById(`preview_${type}`);
+  const wrapper = document.getElementById(`imagePreviewWrapper_${type}`);
+  document.getElementById(`imageInput_${type}`).value = "";
+  preview.src = "";
+  wrapper.style.display = 'none';
+  preview.style.display = 'none';
+}
 
-    if (!title || !description) {
-      alert("Please fill in both title and description.");
-      return false;
+    function validateLostForm() {
+      const title = document.querySelector('#lost [name="title"]').value.trim();
+      const desc = document.querySelector('#lost [name="description"]').value.trim();
+      if (!title || !desc) {
+        alert("Please fill in both title and description.");
+        return false;
+      }
+      return true;
     }
-    return true;
-  }
 
-  window.addEventListener('DOMContentLoaded', () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('success') === 'true') {
-      alert("Your lost item report has been successfully submitted!");
+    function validateFoundForm() {
+      const title = document.querySelector('#found [name="title"]').value.trim();
+      const desc = document.querySelector('#found [name="description"]').value.trim();
+      if (!title || !desc) {
+        alert("Please fill in both title and description.");
+        return false;
+      }
+      return true;
     }
+  </script>
+<!-- Add this JS at bottom -->
+<script>
+  document.querySelectorAll('form').forEach(form => {
+    form.addEventListener('submit', e => {
+      const activeTab = document.querySelector('.tab-pane.active');
+      if (!activeTab.contains(e.target)) {
+        e.preventDefault(); // Stop wrong form submission
+      }
+    });
   });
 </script>
+<script>
+  // Dynamically set form action on submit
+  document.getElementById('lostForm').addEventListener('submit', function(e) {
+    this.action = "/report_lost";
+  });
+
+  document.getElementById('foundForm').addEventListener('submit', function(e) {
+    this.action = "/report_f";
+  });
+</script>
+
 
 </body>
 </html>

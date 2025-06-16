@@ -346,6 +346,7 @@ from flask import flash
 
 @app.route('/report_lost', methods=['GET', 'POST'])
 def report_lost():
+    print("lost called")
     if 'username' not in session:
         return redirect(url_for('login'))
 
@@ -377,9 +378,47 @@ def report_lost():
     users_ref = db.reference('users').get()
     sorted_users = sorted(users_ref.items(), key=lambda x: x[1].get('points', 0), reverse=True) if users_ref else []
 
-    return render_template('report_lost.html', sorted_users=sorted_users)
+    return render_template('report_lost.html', sorted_users=sorted_users,status="lost")
+@app.route('/report', methods=['GET'])
+def show_report_page():
+    status = request.args.get('status', 'lost')  # default tab
+    return render_template('report_lost.html', status=status)
 
+@app.route('/report_f', methods=['GET', 'POST'])
+def report_f():
+    print("called")
+    if 'username' not in session:
+        return redirect(url_for('login'))
 
+    if request.method == 'POST':
+        title = request.form['title']
+        description = request.form['description']
+        lost_date = request.form['lost_date']
+        image = request.files.get('image')
+
+        if image and image.filename != '':
+            filename = secure_filename(image.filename)
+            image.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        else:
+            filename = 'placeholder.jpg'
+
+        db.reference('items').push({
+            'title': title,
+            'description': description,
+            'lost_date': lost_date,
+            'image': filename,
+            'owner': session['username'],
+            'status': 'found',
+            'returned': False
+        })
+
+        flash("found item reported successfully!")
+        return redirect(url_for('profile', success='true'))
+
+    users_ref = db.reference('users').get()
+    sorted_users = sorted(users_ref.items(), key=lambda x: x[1].get('points', 0), reverse=True) if users_ref else []
+
+    return render_template('report_lost.html', sorted_users=sorted_users,status="lost")
 
 @app.route('/report_found', methods=['POST'])
 def report_found():

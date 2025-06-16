@@ -173,6 +173,10 @@ h1, h2, h3, h4, h5, h6 {
   background-color: rgba(172,212,241,1) !important;
   color: white !important;
 }
+      .bg-found{
+          background-color: rgba(25,212,150,1) !important;
+  color: white !important;
+      }
     .leaderboard-btn {
   position: fixed;
   bottom: 24px;
@@ -329,9 +333,12 @@ h1, h2, h3, h4, h5, h6 {
               <h5 class="card-title">{{ item.title }}</h5>
 <span class="badge
   {% if item.returned == true %}bg-returned
+  {% elif item.status == 'found' %}bg-found
   {% else %}bg-lost{% endif %}">
   {% if item.returned == true %}
     <i class="bi bi-check-circle-fill me-1"></i>Returned
+      {% elif item.status == 'found' %}
+    <i class="bi bi-bell"></i> Found
   {% else %}
     <i class="bi bi-question-circle-fill me-1"></i>Lost
   {% endif %}
